@@ -19,7 +19,7 @@ const results: TestResult[] = [];
 
 function logSection(title: string) {
   console.log(`\n==================================================`);
-  console.log(`🧪 ${title}`);
+  console.log(`[Test Section] ${title}`);
   console.log(`==================================================`);
 }
 
@@ -504,7 +504,7 @@ async function runQASuite() {
 
   // Print Summary Table
   console.log('\n==================================================');
-  console.log('📊 FINAL QA EVALUATION REPORT');
+  console.log('QA EVALUATION REPORT');
   console.log('==================================================');
   console.table(
     results.map((r) => ({

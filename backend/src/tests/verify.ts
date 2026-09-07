@@ -12,19 +12,19 @@ import { parse } from 'csv-parse/sync';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
-    console.error(`❌ ASSERTION FAILED: ${message}`);
+    console.error(`[FAIL] ${message}`);
     process.exit(1);
   } else {
-    console.log(`✅ PASSED: ${message}`);
+    console.log(`[PASS] ${message}`);
   }
 }
 
 async function runTests() {
   console.log('--------------------------------------------------');
-  console.log('🧪 Running ReachInbox Email Job Scheduler Tests');
+  console.log('Running Invariant Tests');
   console.log('--------------------------------------------------');
 
-  // Test 1: Deterministic BullMQ Job ID derivation
+  // Deterministic BullMQ Job ID derivation
   console.log('\n[Test 1] Deterministic Job ID Derivation');
   const mockId1 = 'c0286fc7-85b4-4b53-9a48-8df05072049e';
   const derived1 = getDeterministicJobId(mockId1);
@@ -33,7 +33,7 @@ async function runTests() {
   assert(derived1 === `emailjob_${mockId1}`, 'Job ID format matches emailjob_<id>');
   assert(derived1 === derived2, 'Identical EmailJob.id yields identical BullMQ jobId for deduplication');
 
-  // Test 2: Rate Limit Window Formatting & Next Window Bounds
+  // Rate Limit Window Formatting & Next Window Bounds
   console.log('\n[Test 2] Hourly Rate Limit Window & Rescheduling Math');
   const testDate = new Date('2026-09-07T18:15:30.000Z');
   const windowStr = getCurrentHourWindow(testDate);
@@ -49,7 +49,7 @@ async function runTests() {
     'Next window is strictly in the future'
   );
 
-  // Test 3: CSV Lead Extraction & Whitespace/Deduplication Handling
+  // CSV Lead Extraction & Whitespace/Deduplication Handling
   console.log('\n[Test 3] CSV Lead Extraction & Sanitization');
   const sampleCsv = `
 Name,Email,Company
@@ -81,7 +81,7 @@ Charlie, charlie.dev@reachinbox.ai ,ReachInbox
   assert(!unique.includes('not-an-email'), 'Filters invalid emails');
 
   console.log('\n==================================================');
-  console.log('🎉 ALL REACHINBOX INVARIANT TESTS PASSED!');
+  console.log('All invariant tests passed successfully.');
   console.log('==================================================');
   process.exit(0);
 }

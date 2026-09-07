@@ -42,38 +42,33 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 async function bootstrap() {
   try {
     console.log('----------------------------------------------------');
-    console.log('🚀 ReachInbox Email Job Scheduler Server Starting...');
+    console.log('[Init] ReachInbox Email Scheduler Server Starting...');
     console.log('----------------------------------------------------');
 
-    // 1. Ensure default Ethereal sender accounts exist
     try {
       await ensureDefaultSenders();
     } catch (err: any) {
       console.warn('[Bootstrap Warning] Could not ensure senders:', err.message);
     }
 
-    // 2. Initialize Elasticsearch index if reachable
     try {
       await initializeElasticsearchIndex();
     } catch (err: any) {
       console.warn('[Bootstrap Warning] Elasticsearch init skipped:', err.message);
     }
 
-    // 3. Start the BullMQ Worker
     startEmailWorker();
 
-    // 4. Run Boot-Time Reconciliation (DB <-> Redis sync)
     try {
       await reconcileDatabaseAndRedis();
     } catch (err: any) {
       console.warn('[Bootstrap Warning] Boot reconciliation skipped:', err.message);
     }
 
-    // 5. Start HTTP Server
     const server = app.listen(env.PORT, () => {
-      console.log(`✅ Server listening on http://localhost:${env.PORT}`);
-      console.log(`📊 Live BullMQ Queue Dashboard: http://localhost:${env.PORT}/admin/queues`);
-      console.log(`🔌 API Endpoints root: http://localhost:${env.PORT}/api`);
+      console.log(`[Server] Listening on http://localhost:${env.PORT}`);
+      console.log(`[Queue Admin] BullMQ Dashboard: http://localhost:${env.PORT}/admin/queues`);
+      console.log(`[API] Endpoints: http://localhost:${env.PORT}/api`);
     });
 
     // Graceful Shutdown
