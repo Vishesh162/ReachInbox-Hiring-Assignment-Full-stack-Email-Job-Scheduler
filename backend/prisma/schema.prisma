@@ -1,0 +1,83 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum JobStatus {
+  scheduled
+  processing
+  sent
+  failed
+  rescheduled
+}
+
+model User {
+  id               String      @id @default(uuid())
+  googleId         String?     @unique
+  name             String
+  email            String      @unique
+  avatarUrl        String?
+  slackAccessToken String?
+  slackTeamId      String?
+  slackChannelId   String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  campaigns        Campaign[]
+}
+
+model Sender {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  smtpUser  String
+  smtpPass  String
+  host      String
+  port      Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  emailJobs EmailJob[]
+}
+
+model Campaign {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject     String
+  body        String
+  startTime   DateTime
+  delayMs     Int        @default(2000)
+  hourlyLimit Int        @default(200)
+  totalLeads  Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  emailJobs   EmailJob[]
+
+  @@index([userId])
+}
+
+model EmailJob {
+  id             String     @id @default(uuid())
+  campaignId     String
+  campaign       Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         Sender     @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  recipientEmail String
+  subject        String
+  body           String
+  scheduledFor   DateTime
+  status         JobStatus  @default(scheduled)
+  attempts       Int        @default(0)
+  sentAt         DateTime?
+  error          String?
+  bullJobId      String     @unique
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([recipientEmail])
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([recipientEmail, status, scheduledFor])
+}

@@ -1,0 +1,20 @@
+{
+  "name": "reachinbox-scheduler-monorepo",
+  "version": "1.0.0",
+  "author": "Vishesh <162043625+Vishesh162@users.noreply.github.com>",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace=backend run dev",
+    "dev:frontend": "npm --workspace=frontend run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm --workspace=backend run build && npm --workspace=frontend run build",
+    "start": "npm --workspace=backend run start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
