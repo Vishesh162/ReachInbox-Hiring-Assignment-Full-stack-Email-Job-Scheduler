@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { getSlackAuthorizeUrl, exchangeSlackCode } from '../services/slackService.js';
 import { env } from '../config/env.js';
+import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
 
-export async function getSlackAuthUrlHandler(req: Request, res: Response) {
+export async function getSlackAuthUrlHandler(req: AuthenticatedRequest, res: Response) {
   try {
-    const state = (req.query.userId as string) || 'reachinbox';
-    const authUrl = getSlackAuthorizeUrl(state);
+    const userId = req.user?.id || (req.query.userId as string) || 'reachinbox';
+    const authUrl = getSlackAuthorizeUrl(userId);
     return res.json({ url: authUrl });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
@@ -21,10 +23,29 @@ export async function slackCallbackHandler(req: Request, res: Response) {
       return res.status(400).send('Missing authorization code');
     }
 
-    const userId = state !== 'reachinbox' ? state : undefined;
+    let userId: string | undefined = undefined;
+    if (state && state !== 'reachinbox') {
+      userId = state;
+    }
+
+    // Fallback: check session_token cookie if state was default
+    if (!userId) {
+      const token = (req as any).cookies?.session_token || req.headers.authorization?.replace(/^Bearer\s+/i, '');
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, env.JWT_SECRET) as any;
+          if (decoded?.id) {
+            userId = decoded.id;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     const result = await exchangeSlackCode(code, userId);
 
-    console.log(`[Slack] OAuth exchange complete for team: ${result.teamName}`);
+    console.log(`[Slack] OAuth exchange complete for team: ${result.teamName} (user: ${userId || 'default'})`);
 
     // Redirect back to frontend dashboard with success banner
     return res.redirect(`${env.FRONTEND_URL}/dashboard?slack=connected&team=${encodeURIComponent(result.teamName || '')}`);

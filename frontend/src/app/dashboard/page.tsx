@@ -40,6 +40,10 @@ function DashboardContent() {
         type: 'success',
         text: `Slack workspace ${team ? `(${team})` : ''} connected successfully! Rate-limit alerts are active.`,
       });
+      // Immediately refresh user state so the sidebar updates to "Slack Connected"
+      api.getMe().then((res) => {
+        if (res.user) setUser(res.user);
+      }).catch(console.error);
     } else if (slackStatus === 'error') {
       setBannerMessage({
         type: 'error',
