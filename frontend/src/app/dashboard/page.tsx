@@ -9,30 +9,7 @@ import ScheduledTable from '@/components/ScheduledTable';
 import SentTable from '@/components/SentTable';
 import ComposeModal from '@/components/ComposeModal';
 import EmailDetailModal from '@/components/EmailDetailModal';
-import { Search, RotateCw, Filter, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
-
-function UserAvatar({ user }: { user: User | null }) {
-  const [imgError, setImgError] = useState(false);
-  const initial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
-
-  if (user?.avatarUrl && !imgError) {
-    return (
-      <img
-        src={user.avatarUrl}
-        alt={user.name || 'User'}
-        referrerPolicy="no-referrer"
-        onError={() => setImgError(true)}
-        className="w-7 h-7 rounded-full object-cover border border-gray-200 shrink-0"
-      />
-    );
-  }
-
-  return (
-    <div className="w-7 h-7 rounded-full bg-[#00A343] text-white font-semibold text-xs flex items-center justify-center border border-emerald-600/20 shrink-0 shadow-2xs select-none">
-      {initial}
-    </div>
-  );
-}
+import { Search, RotateCw, Filter, CheckCircle2, AlertCircle } from 'lucide-react';
 
 function DashboardContent() {
   const router = useRouter();
@@ -290,33 +267,6 @@ function DashboardContent() {
                 ? `Scheduled (${scheduledJobs.length})`
                 : `Sent (${sentJobs.length})`}
             </span>
-
-            <div className="h-5 w-[1px] bg-gray-200"></div>
-
-            {/* User Profile & Logout Button */}
-            {user && (
-              <div className="flex items-center gap-2.5">
-                <UserAvatar user={user} />
-                <div className="hidden lg:block text-left">
-                  <div className="text-xs font-semibold text-gray-900 leading-tight truncate max-w-[120px]">
-                    {user.name}
-                  </div>
-                  <div className="text-[10px] text-gray-500 leading-tight truncate max-w-[120px]">
-                    {user.email}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  title="Log out of ReachInbox"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-all"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            )}
           </div>
         </header>
 
