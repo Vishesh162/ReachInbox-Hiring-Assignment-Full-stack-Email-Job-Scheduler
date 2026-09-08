@@ -101,6 +101,7 @@ export async function processEmailJob(job: Job<EmailJobPayload>) {
         window: rateLimitResult.window,
         currentCount: rateLimitResult.currentCount,
         limit: hourlyLimit,
+        userId: emailJob.campaign?.userId,
       });
     }
 

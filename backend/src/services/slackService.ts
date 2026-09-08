@@ -78,20 +78,31 @@ export async function sendRateLimitSlackAlert({
   window,
   currentCount,
   limit,
+  userId,
 }: {
   senderEmail: string;
   senderId: string;
   window: string;
   currentCount: number;
   limit: number;
+  userId?: string;
 }) {
   try {
-    // Find user with connected Slack credentials
-    const userWithSlack = await prisma.user.findFirst({
-      where: {
-        slackAccessToken: { not: null },
-      },
-    });
+    // Prioritize the campaign owner's connected Slack, falling back to any connected user
+    let userWithSlack = null;
+    if (userId) {
+      userWithSlack = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+    }
+
+    if (!userWithSlack || !userWithSlack.slackAccessToken) {
+      userWithSlack = await prisma.user.findFirst({
+        where: {
+          slackAccessToken: { not: null },
+        },
+      });
+    }
 
     if (!userWithSlack || !userWithSlack.slackAccessToken) {
       console.log('[Slack Alert] No connected Slack user found. Skipping alert.');
