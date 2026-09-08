@@ -9,7 +9,7 @@ import ScheduledTable from '@/components/ScheduledTable';
 import SentTable from '@/components/SentTable';
 import ComposeModal from '@/components/ComposeModal';
 import EmailDetailModal from '@/components/EmailDetailModal';
-import { Search, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
+import { Search, RotateCw, Filter, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 
 function UserAvatar({ user }: { user: User | null }) {
   const [imgError, setImgError] = useState(false);
@@ -51,6 +51,8 @@ function DashboardContent() {
   const [isComposeOpen, setIsComposeOpen] = useState<boolean>(false);
   const [selectedJob, setSelectedJob] = useState<EmailJob | null>(null);
   const [bannerMessage, setBannerMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Check query params for Slack OAuth return
   useEffect(() => {
@@ -159,11 +161,15 @@ function DashboardContent() {
     }
   };
 
-  const displayedJobs = searchResults !== null
+  const baseJobs = searchResults !== null
     ? searchResults
     : activeTab === 'scheduled'
     ? scheduledJobs
     : sentJobs;
+
+  const displayedJobs = statusFilter === 'all'
+    ? baseJobs
+    : baseJobs.filter((job) => job.status === statusFilter);
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -212,29 +218,71 @@ function DashboardContent() {
 
         {/* Top Bar with Search matching Figma */}
         <header className="h-16 border-b border-gray-200 px-6 flex items-center justify-between bg-white sticky top-0 z-10">
-          <div className="flex items-center gap-3 w-full max-w-md">
-            <div className="relative w-full">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="flex items-center gap-3 flex-1 max-w-2xl">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 stroke-[1.5]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search"
-                className="w-full pl-9 pr-4 py-1.5 text-xs text-gray-800 placeholder-gray-400 bg-gray-50 hover:bg-gray-100/80 focus:bg-white rounded-lg border border-transparent focus:border-gray-300 focus:outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 bg-[#F3F4F6] hover:bg-[#EAECEF] focus:bg-white rounded-full border border-transparent focus:border-gray-300 focus:outline-none transition-all shadow-2xs"
               />
             </div>
-          </div>
 
-          <div className="flex items-center gap-3">
+            {/* Filter Icon matching screenshot */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                title="Filter emails"
+                className={`p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors ${
+                  isFilterOpen || statusFilter !== 'all' ? 'text-[#00A343] bg-green-50' : ''
+                }`}
+              >
+                <Filter className="w-4 h-4 stroke-[1.5]" />
+              </button>
+
+              {/* Filter Dropdown Popover */}
+              {isFilterOpen && (
+                <div className="absolute left-0 mt-2 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-30 text-xs">
+                  <div className="px-3 py-1.5 font-semibold text-gray-400 uppercase text-[10px] tracking-wider">
+                    Filter by status
+                  </div>
+                  {['all', 'scheduled', 'rescheduled', 'sent', 'failed'].map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter(st);
+                        setIsFilterOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 capitalize transition-colors flex items-center justify-between ${
+                        statusFilter === st
+                          ? 'bg-emerald-50 text-[#00A343] font-semibold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span>{st}</span>
+                      {statusFilter === st && <span className="w-1.5 h-1.5 rounded-full bg-[#00A343]"></span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Refresh Icon matching screenshot */}
             <button
               type="button"
               onClick={fetchData}
               title="Refresh queue data"
-              className="p-2 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#00A343]' : ''}`} />
+              <RotateCw className={`w-4 h-4 stroke-[1.5] ${loading ? 'animate-spin text-[#00A343]' : ''}`} />
             </button>
+          </div>
 
+          <div className="flex items-center gap-3 ml-4">
             <span className="text-xs text-gray-400 hidden md:inline">
               {searchResults !== null
                 ? `Search results (${searchResults.length})`
