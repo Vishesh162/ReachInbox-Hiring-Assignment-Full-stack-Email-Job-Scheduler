@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
+    "postinstall": "prisma generate",
     "start": "node dist/index.js",
     "worker": "node dist/worker.js",
     "prisma:generate": "prisma generate",
