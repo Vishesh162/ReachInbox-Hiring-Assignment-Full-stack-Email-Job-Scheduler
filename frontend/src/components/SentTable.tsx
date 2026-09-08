@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { EmailJob } from '@/types';
-import { CheckCircle2, XCircle, ExternalLink, RefreshCw, Send } from 'lucide-react';
+import { CheckCircle2, XCircle, ExternalLink, RefreshCw, Send, Star } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface SentTableProps {
@@ -18,6 +18,30 @@ export default function SentTable({
   onRefresh,
   onSelectJob,
 }: SentTableProps) {
+  const [starredIds, setStarredIds] = React.useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('starred_sent_emails');
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+      } catch {
+        return new Set();
+      }
+    }
+    return new Set();
+  });
+
+  const toggleStar = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setStarredIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('starred_sent_emails', JSON.stringify(Array.from(next)));
+      }
+      return next;
+    });
+  };
   if (loading && jobs.length === 0) {
     return (
       <div className="p-8 space-y-4">
@@ -117,6 +141,22 @@ export default function SentTable({
               <span>Ethereal</span>
               <ExternalLink className="w-3 h-3" />
             </a>
+
+            {/* Favorite / Star Button */}
+            <button
+              type="button"
+              onClick={(e) => toggleStar(e, job.id)}
+              className="text-gray-300 hover:text-amber-400 p-1 transition-colors shrink-0"
+              title={starredIds.has(job.id) ? 'Starred' : 'Star'}
+            >
+              <Star
+                className={`w-4 h-4 transition-colors ${
+                  starredIds.has(job.id)
+                    ? 'text-amber-400 fill-amber-400'
+                    : 'text-gray-300 stroke-[1.5] hover:text-amber-400'
+                }`}
+              />
+            </button>
           </div>
         );
       })}
