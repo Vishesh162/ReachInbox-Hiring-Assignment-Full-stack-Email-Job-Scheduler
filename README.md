@@ -88,7 +88,15 @@ The project handles delayed email dispatching without cron jobs, preserves state
 - **Scheduled Table**: Relative countdown badges (`due now`, `in 15m`, `in 2 hr`), bulk selection checkboxes, and recipient details (`frontend/src/components/ScheduledTable.tsx`).
 - **Sent Table**: Delivery timestamps, status indicators, and links to Ethereal web inbox previews (`frontend/src/components/SentTable.tsx`).
 - **Compose Modal**: Sender selection, recipient entry, subject, body, and date-time picker (`frontend/src/components/ComposeModal.tsx`).
-- **UI Styling**: Tailwind CSS styling aligned with Figma color values (`#00A343`, `#E8F5E9`, `#FEF3C7`).
+- **UI Styling**: Tailwind CSS styling with custom brand design tokens (`#00A343`, `#E8F5E9`, `#FEF3C7`).
+
+---
+
+## Live Deployment
+
+- **Live Web Application (Frontend)**: [https://reach-inbox-hiring-assignment-full-brown.vercel.app](https://reach-inbox-hiring-assignment-full-brown.vercel.app)
+- **Live Queue Dashboard (Bull Board)**: [https://reachinbox-scheduler-api-19at.onrender.com/admin/queues](https://reachinbox-scheduler-api-19at.onrender.com/admin/queues)
+- **Live Backend API**: [https://reachinbox-scheduler-api-19at.onrender.com/api](https://reachinbox-scheduler-api-19at.onrender.com/api)
 
 ---
 
@@ -142,9 +150,9 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
 ```
 
 ### Ethereal Setup
-Ethereal provides mock SMTP accounts for development.
-- The database seeds default test senders upon running `npx tsx backend/src/scripts/seedSenders.ts`.
-- Alternatively, generate credentials at https://ethereal.email/create and add them to the `Sender` table.
+Ethereal provides mock SMTP accounts for development and automated testing.
+- Default test senders are automatically provisioned on server startup via `ensureDefaultSenders()`.
+- Alternatively, custom credentials can be created at https://ethereal.email/create and added to the `Sender` table.
 - Sent emails generate preview URLs accessible directly through the web dashboard.
 
 ### Running Locally
@@ -162,7 +170,7 @@ cd ..
 npm run dev
 ```
 
-Endpoints:
+Local Endpoints:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 - Queue Dashboard: http://localhost:5000/admin/queues
