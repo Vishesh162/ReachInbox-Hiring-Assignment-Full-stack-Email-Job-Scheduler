@@ -64,7 +64,11 @@ async function bootstrap() {
       console.warn('[Bootstrap Warning] Elasticsearch init skipped:', err.message);
     }
 
-    startEmailWorker();
+    if (process.env.RUN_INLINE_WORKER !== 'false') {
+      startEmailWorker();
+    } else {
+      console.log('[Worker] Inline worker disabled (running as standalone service)');
+    }
 
     try {
       await reconcileDatabaseAndRedis();
