@@ -34,3 +34,6 @@ export async function requireAuth(req: AuthenticatedRequest, res: Response, next
     error: 'Unauthorized: Authentication session token required',
   });
 }
+
+export const authMiddleware = requireAuth;
+export default requireAuth;
