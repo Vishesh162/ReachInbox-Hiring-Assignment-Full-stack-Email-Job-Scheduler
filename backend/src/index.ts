@@ -46,6 +46,13 @@ async function bootstrap() {
     console.log('----------------------------------------------------');
 
     try {
+      await prisma.$connect();
+      console.log('[PostgreSQL] Database connection established successfully');
+    } catch (err: any) {
+      console.warn('[PostgreSQL Warning] Initial connection error:', err.message);
+    }
+
+    try {
       await ensureDefaultSenders();
     } catch (err: any) {
       console.warn('[Bootstrap Warning] Could not ensure senders:', err.message);

@@ -359,7 +359,7 @@ lead.gamma@startup.io, Gamma, Startup
     const hasScopes = authUrl.includes('chat%3Awrite') && authUrl.includes(encodeURIComponent(testUser.id));
 
     // Deduplicated alert key test
-    const dummySender = 'sender-slack-qa';
+    const dummySender = 'sender-slack-qa-' + Date.now();
     const currentWindow = new Date().toISOString().slice(0, 13);
     const notifyKey = `rl:notified:${dummySender}:${currentWindow}`;
     const firstAlert = await redisConnection.set(notifyKey, '1', 'EX', 7200, 'NX');
