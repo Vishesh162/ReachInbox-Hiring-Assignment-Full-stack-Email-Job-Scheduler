@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { User, EmailStats } from '@/types';
-import { Clock, Send, Plus, LogOut } from 'lucide-react';
+import { Clock, Send, Plus, ExternalLink, Slack, LogOut, CheckCircle2 } from 'lucide-react';
 
 interface SidebarProps {
   user: User | null;
