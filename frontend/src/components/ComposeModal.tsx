@@ -50,6 +50,63 @@ export default function ComposeModal({
   const [hourlyLimit, setHourlyLimit] = useState<number>(200);
   const [body, setBody] = useState<string>('');
 
+  // Rich Text Editor State
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [activeStyles, setActiveStyles] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    strikethrough: false,
+    alignLeft: false,
+    alignCenter: false,
+    alignRight: false,
+    ul: false,
+    ol: false,
+  });
+
+  const updateActiveStyles = () => {
+    try {
+      setActiveStyles({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        strikethrough: document.queryCommandState('strikeThrough'),
+        alignLeft: document.queryCommandState('justifyLeft'),
+        alignCenter: document.queryCommandState('justifyCenter'),
+        alignRight: document.queryCommandState('justifyRight'),
+        ul: document.queryCommandState('insertUnorderedList'),
+        ol: document.queryCommandState('insertOrderedList'),
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const executeCommand = (command: string, value: string | undefined = undefined) => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      setBody(editorRef.current.innerHTML);
+    }
+    updateActiveStyles();
+  };
+
+  const handleInsertLink = () => {
+    const url = window.prompt('Enter link URL (e.g. https://reachinbox.ai):', 'https://');
+    if (url && url.trim()) {
+      executeCommand('createLink', url.trim());
+    }
+  };
+
+  const handleInsertImage = () => {
+    const url = window.prompt('Enter image URL:', 'https://');
+    if (url && url.trim()) {
+      executeCommand('insertImage', url.trim());
+    }
+  };
+
   // Send Later popover state
   const [showSendLater, setShowSendLater] = useState<boolean>(false);
   const [scheduledTime, setScheduledTime] = useState<string>('');
@@ -119,7 +176,8 @@ export default function ComposeModal({
       setError('Please provide an email subject.');
       return;
     }
-    if (!body.trim()) {
+    const plainBody = body.replace(/<[^>]+>/g, '').trim();
+    if (!plainBody && !body.includes('<img') && !body.trim()) {
       setError('Please provide the email body content.');
       return;
     }
@@ -385,60 +443,163 @@ export default function ComposeModal({
           </div>
 
           {/* Rich text formatting toolbar matching Figma Screenshot 2 */}
-          <div className="border border-gray-200 rounded-xl overflow-hidden mt-4">
-            <div className="px-3 py-2 bg-gray-50/70 border-b border-gray-200 flex flex-wrap items-center gap-2 text-gray-600">
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+          <div className="border border-gray-200 rounded-xl overflow-hidden mt-4 bg-white">
+            <div className="px-3 py-2 bg-gray-50/70 border-b border-gray-200 flex flex-wrap items-center gap-1 sm:gap-1.5 text-gray-600 select-none">
+              <button
+                type="button"
+                title="Undo (Ctrl+Z)"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('undo')}
+                className="p-1.5 hover:bg-gray-200/60 rounded text-gray-600 transition-colors"
+              >
                 <Undo className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Redo (Ctrl+Y)"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('redo')}
+                className="p-1.5 hover:bg-gray-200/60 rounded text-gray-600 transition-colors"
+              >
                 <Redo className="w-3.5 h-3.5" />
               </button>
               <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded font-bold">
+              <button
+                type="button"
+                title="Bold (Ctrl+B)"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('bold')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.bold ? 'bg-gray-200 text-gray-900 font-bold shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <Bold className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded italic">
+              <button
+                type="button"
+                title="Italic (Ctrl+I)"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('italic')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.italic ? 'bg-gray-200 text-gray-900 italic shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <Italic className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded underline">
+              <button
+                type="button"
+                title="Underline (Ctrl+U)"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('underline')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.underline ? 'bg-gray-200 text-gray-900 underline shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <Underline className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded line-through">
+              <button
+                type="button"
+                title="Strikethrough"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('strikeThrough')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.strikethrough ? 'bg-gray-200 text-gray-900 line-through shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <Strikethrough className="w-3.5 h-3.5" />
               </button>
               <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Align Left"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('justifyLeft')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.alignLeft ? 'bg-gray-200 text-gray-900 shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <AlignLeft className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Align Center"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('justifyCenter')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.alignCenter ? 'bg-gray-200 text-gray-900 shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <AlignCenter className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Align Right"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('justifyRight')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.alignRight ? 'bg-gray-200 text-gray-900 shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <AlignRight className="w-3.5 h-3.5" />
               </button>
               <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Bullet List"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('insertUnorderedList')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.ul ? 'bg-gray-200 text-gray-900 shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <List className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Numbered List"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => executeCommand('insertOrderedList')}
+                className={`p-1.5 rounded transition-colors ${
+                  activeStyles.ol ? 'bg-gray-200 text-gray-900 shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                }`}
+              >
                 <ListOrdered className="w-3.5 h-3.5" />
               </button>
               <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Insert Link"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleInsertLink}
+                className="p-1.5 hover:bg-gray-200/60 rounded text-gray-600 transition-colors"
+              >
                 <Link2 className="w-3.5 h-3.5" />
               </button>
-              <button type="button" className="p-1 hover:bg-gray-200/60 rounded">
+              <button
+                type="button"
+                title="Insert Image URL"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleInsertImage}
+                className="p-1.5 hover:bg-gray-200/60 rounded text-gray-600 transition-colors"
+              >
                 <ImageIcon className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Body textarea matching Figma */}
-            <textarea
-              rows={8}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Type Your Reply..."
-              className="w-full p-4 text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none border-none"
+            {/* ContentEditable Rich Text Body matching Figma */}
+            <div
+              ref={editorRef}
+              contentEditable
+              role="textbox"
+              aria-multiline="true"
+              data-placeholder="Type Your Reply..."
+              onInput={(e) => {
+                setBody(e.currentTarget.innerHTML);
+                updateActiveStyles();
+              }}
+              onKeyUp={updateActiveStyles}
+              onMouseUp={updateActiveStyles}
+              className="w-full min-h-[180px] max-h-[320px] p-4 text-sm text-gray-900 focus:outline-none overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:pointer-events-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-blue-600 [&_a]:underline [&_img]:max-w-full [&_img]:rounded-md"
             />
           </div>
         </div>

@@ -65,8 +65,10 @@ export async function sendEmail({
     from: `"ReachInbox Outreach" <${sender.email}>`,
     to,
     subject,
-    text: body,
-    html: `<div style="font-family: sans-serif; line-height: 1.6;">${body.replace(/\n/g, '<br/>')}</div>`,
+    text: body.replace(/<[^>]+>/g, ''),
+    html: body.includes('<')
+      ? `<div style="font-family: sans-serif; line-height: 1.6;">${body}</div>`
+      : `<div style="font-family: sans-serif; line-height: 1.6;">${body.replace(/\n/g, '<br/>')}</div>`,
   });
 
   const previewUrl = nodemailer.getTestMessageUrl(info);
