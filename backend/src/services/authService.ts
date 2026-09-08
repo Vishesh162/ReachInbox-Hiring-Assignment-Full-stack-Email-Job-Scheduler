@@ -51,9 +51,9 @@ export async function verifyGoogleTokenAndGetUser(idToken: string) {
     avatarUrl = payload.picture;
   } else {
     // Development / Mock fallback when GOOGLE_CLIENT_ID is not yet configured in local demo
-    email = idToken.includes('@') ? idToken : 'oliver.brown@reachinbox.ai';
+    email = idToken.includes('@') ? idToken : 'user@reachinbox.ai';
     googleId = `mock-google-${email}`;
-    name = 'Oliver Brown';
+    name = email.split('@')[0];
     avatarUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces';
   }
 
@@ -87,7 +87,7 @@ export async function verifyGoogleTokenAndGetUser(idToken: string) {
  */
 export async function loginWithEmail(email: string, name?: string) {
   const cleanEmail = email.trim().toLowerCase();
-  const userName = name || cleanEmail.split('@')[0] || 'Oliver Brown';
+  const userName = name || cleanEmail.split('@')[0] || 'User';
 
   const user = await prisma.user.upsert({
     where: { email: cleanEmail },

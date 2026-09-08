@@ -53,12 +53,12 @@ async function runE2EComposeQASuite() {
   try {
     const scheduledStartTime = new Date(Date.now() + 4000); // 4 seconds out for fast verification
     const recipients = [
-      'oliver.lead1@domain.com',
+      'lead1@company.com',
       'jane.smith@host.com',
       'daniel.k@mail.com',
     ];
     const subject = 'Quick question about your outbound process';
-    const bodyHtml = `<p>Hi {{first_name}},</p><p>I noticed your team is scaling outbound and wanted to reach out. We help companies like yours automate lead discovery and follow-ups without losing the personal touch.</p><p>Worth a quick 15-minute call this week?</p><p>Best,<br>Manan</p>`;
+    const bodyHtml = `<p>Hi {{first_name}},</p><p>I noticed your team is scaling outbound and wanted to reach out. We help companies like yours automate lead discovery and follow-ups without losing the personal touch.</p><p>Worth a quick 15-minute call this week?</p><p>Best,<br>Vishesh</p>`;
 
     const campaign = await createCampaign({
       userId: testUser.id,

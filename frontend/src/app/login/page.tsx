@@ -55,7 +55,7 @@ export default function LoginPage() {
       if (clientId && (window as any).google?.accounts?.id) {
         (window as any).google.accounts.id.prompt();
       } else {
-        await api.loginWithGoogle('demo-google-token-oliver');
+        await api.loginWithGoogle('demo-google-token');
         router.push('/dashboard');
       }
     } catch (err: any) {

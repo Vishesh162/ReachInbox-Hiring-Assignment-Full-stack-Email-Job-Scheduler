@@ -71,10 +71,10 @@ export default function Sidebar({
             <UserAvatar user={user} />
             <div className="min-w-0 flex-1">
               <h2 className="text-xs font-semibold text-gray-900 truncate">
-                {user?.name || 'Oliver Brown'}
+                {user?.name || 'Workspace User'}
               </h2>
               <p className="text-[11px] text-gray-500 truncate">
-                {user?.email || 'oliver.brown@reachinbox.ai'}
+                {user?.email || 'user@reachinbox.ai'}
               </p>
             </div>
           </div>

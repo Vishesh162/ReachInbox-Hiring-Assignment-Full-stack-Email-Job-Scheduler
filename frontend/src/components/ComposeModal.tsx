@@ -30,7 +30,7 @@ export default function ComposeModal({
   const [selectedSenderId, setSelectedSenderId] = useState<string>('');
   const [recipientInput, setRecipientInput] = useState<string>('');
   const [recipients, setRecipients] = useState<string[]>([
-    'oliver.lead1@domain.com',
+    'prospect1@company.com',
     'jane.smith@host.com',
     'daniel.k@mail.com',
   ]);
