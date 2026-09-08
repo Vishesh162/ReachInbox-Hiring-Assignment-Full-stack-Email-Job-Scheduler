@@ -95,9 +95,6 @@ function DashboardContent() {
 
   useEffect(() => {
     fetchData();
-    // Poll every 5 seconds for live status updates as BullMQ processes delayed jobs
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
   }, [fetchData]);
 
   // Search handler (Elasticsearch with fallback)
