@@ -5,12 +5,18 @@ import { searchEmails, isElasticsearchReady } from '../services/elasticsearchSer
 
 export async function getScheduledEmails(req: AuthenticatedRequest, res: Response) {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
     const skip = (page - 1) * limit;
 
     const where = {
       status: { in: ['scheduled' as const, 'rescheduled' as const, 'processing' as const] },
+      campaign: { userId },
     };
 
     const [total, items] = await Promise.all([
@@ -41,12 +47,18 @@ export async function getScheduledEmails(req: AuthenticatedRequest, res: Respons
 
 export async function getSentEmails(req: AuthenticatedRequest, res: Response) {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
     const skip = (page - 1) * limit;
 
     const where = {
       status: { in: ['sent' as const, 'failed' as const] },
+      campaign: { userId },
     };
 
     const [total, items] = await Promise.all([
@@ -104,8 +116,15 @@ export async function searchEmailsHandler(req: AuthenticatedRequest, res: Respon
       }
     }
 
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     // Fallback to PostgreSQL database search
-    const where: any = {};
+    const where: any = {
+      campaign: { userId },
+    };
 
     if (status) {
       where.status = status;
@@ -134,6 +153,7 @@ export async function searchEmailsHandler(req: AuthenticatedRequest, res: Respon
         take: limit,
         include: {
           sender: { select: { id: true, email: true } },
+          campaign: { select: { id: true, subject: true } },
         },
       }),
     ]);
@@ -152,12 +172,30 @@ export async function searchEmailsHandler(req: AuthenticatedRequest, res: Respon
 
 export async function getEmailStats(req: AuthenticatedRequest, res: Response) {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const [scheduledCount, sentCount, failedCount] = await Promise.all([
       prisma.emailJob.count({
-        where: { status: { in: ['scheduled', 'rescheduled', 'processing'] } },
+        where: {
+          status: { in: ['scheduled', 'rescheduled', 'processing'] },
+          campaign: { userId },
+        },
       }),
-      prisma.emailJob.count({ where: { status: 'sent' } }),
-      prisma.emailJob.count({ where: { status: 'failed' } }),
+      prisma.emailJob.count({
+        where: {
+          status: 'sent',
+          campaign: { userId },
+        },
+      }),
+      prisma.emailJob.count({
+        where: {
+          status: 'failed',
+          campaign: { userId },
+        },
+      }),
     ]);
 
     return res.json({

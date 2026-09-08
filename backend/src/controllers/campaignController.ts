@@ -108,7 +108,13 @@ export async function parseCsvRecipientsHandler(req: AuthenticatedRequest, res: 
 
 export async function getCampaignsHandler(req: AuthenticatedRequest, res: Response) {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const campaigns = await prisma.campaign.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
