@@ -59,6 +59,43 @@ export async function createCampaignHandler(req: AuthenticatedRequest, res: Resp
 }
 
 /**
+ * Pure function to parse raw CSV or line-delimited content into deduplicated lowercase email array
+ */
+export function parseCsvContent(csvContent: string): { emails: string[]; totalCount: number } {
+  let records: any[] = [];
+  try {
+    records = parse(csvContent, {
+      columns: false,
+      skip_empty_lines: true,
+      trim: true,
+    });
+  } catch {
+    // If parsing fails as standard CSV, split line by line
+    records = csvContent.split(/\r?\n/).map((line) => [line]);
+  }
+
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const extractedEmails: string[] = [];
+
+  for (const row of records) {
+    for (const cell of row) {
+      if (typeof cell === 'string') {
+        const matches = cell.match(emailRegex);
+        if (matches) {
+          extractedEmails.push(...matches.map((m) => m.toLowerCase()));
+        }
+      }
+    }
+  }
+
+  const uniqueEmails = Array.from(new Set(extractedEmails));
+  return {
+    emails: uniqueEmails,
+    totalCount: uniqueEmails.length,
+  };
+}
+
+/**
  * Parses raw CSV string or lines into recipient email array
  */
 export async function parseCsvRecipientsHandler(req: AuthenticatedRequest, res: Response) {
@@ -68,38 +105,12 @@ export async function parseCsvRecipientsHandler(req: AuthenticatedRequest, res: 
       return res.status(400).json({ error: 'csvContent string is required' });
     }
 
-    let records: any[] = [];
-    try {
-      records = parse(csvContent, {
-        columns: false,
-        skip_empty_lines: true,
-        trim: true,
-      });
-    } catch {
-      // If parsing fails as standard CSV, split line by line
-      records = csvContent.split(/\r?\n/).map((line) => [line]);
-    }
-
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    const extractedEmails: string[] = [];
-
-    for (const row of records) {
-      for (const cell of row) {
-        if (typeof cell === 'string') {
-          const matches = cell.match(emailRegex);
-          if (matches) {
-            extractedEmails.push(...matches.map((m) => m.toLowerCase()));
-          }
-        }
-      }
-    }
-
-    const uniqueEmails = Array.from(new Set(extractedEmails));
+    const { emails, totalCount } = parseCsvContent(csvContent);
 
     return res.json({
       success: true,
-      totalCount: uniqueEmails.length,
-      emails: uniqueEmails,
+      totalCount,
+      emails,
     });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });

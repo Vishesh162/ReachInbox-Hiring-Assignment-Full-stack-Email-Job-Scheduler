@@ -8,6 +8,7 @@ import {
   Clock,
   ChevronDown,
   X,
+  CheckCircle2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Sender } from '@/types';
@@ -37,6 +38,7 @@ export default function ComposeModal({
   const [delaySec, setDelaySec] = useState<number>(2);
   const [hourlyLimit, setHourlyLimit] = useState<number>(200);
   const [body, setBody] = useState<string>('');
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   // Send Later popover state
   const [showSendLater, setShowSendLater] = useState<boolean>(false);
@@ -78,11 +80,16 @@ export default function ComposeModal({
     if (!file) return;
 
     try {
+      setError(null);
+      setUploadSuccess(null);
       const text = await file.text();
       const parsed = await api.parseCsvRecipients(text);
       if (parsed.emails && parsed.emails.length > 0) {
         const merged = Array.from(new Set([...recipients, ...parsed.emails]));
         setRecipients(merged);
+        setUploadSuccess(`Successfully detected ${parsed.emails.length} email addresses from ${file.name}`);
+      } else {
+        setError(`No valid email addresses detected in ${file.name}`);
       }
     } catch (err: any) {
       setError(`Failed to parse CSV: ${err.message}`);
@@ -328,6 +335,23 @@ export default function ComposeModal({
               </button>
             </div>
           </div>
+
+          {/* Detected emails count badge */}
+          {uploadSuccess && (
+            <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-[#E8F5E9] border border-[#A7F3D0] rounded-lg text-xs text-[#008A38]">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <span className="font-medium">{uploadSuccess}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUploadSuccess(null)}
+                className="hover:text-emerald-900 ml-1"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Subject Field */}
           <div className="flex items-center gap-4 text-sm pb-2 border-b border-gray-100">
