@@ -26,6 +26,13 @@ export async function createCampaign(input: CreateCampaignInput) {
     recipients,
   } = input;
 
+  if (!subject || !subject.trim()) {
+    throw new Error('Subject is required');
+  }
+  if (!body || !body.trim()) {
+    throw new Error('Email body is required');
+  }
+
   // Deduplicate and trim email addresses
   const cleanRecipients = Array.from(
     new Set(
