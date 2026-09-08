@@ -1,6 +1,5 @@
 /**
- * Exact Outbox Labs / ReachInbox Figma Design Tokens
- * Source of Truth: Figma Screens (Login, Dashboard, Compose Modal, Scheduled, Sent)
+ * Outbox Labs Design Tokens
  */
 
 export const TOKENS = {

@@ -114,13 +114,13 @@ export async function sendRateLimitSlackAlert({
 
     await client.chat.postMessage({
       channel,
-      text: `⚠️ *Hourly Rate Limit Exceeded for Sender*`,
+      text: `*Hourly Rate Limit Exceeded for Sender*`,
       blocks: [
         {
           type: 'header',
           text: {
             type: 'plain_text',
-            text: '⚠️ Hourly Rate Limit Exceeded',
+            text: 'Hourly Rate Limit Exceeded',
             emoji: true,
           },
         },

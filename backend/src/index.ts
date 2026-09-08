@@ -96,7 +96,7 @@ async function bootstrap() {
     process.on('SIGINT', () => shutdown('SIGINT'));
     process.on('SIGTERM', () => shutdown('SIGTERM'));
   } catch (err: any) {
-    console.error('❌ Fatal error during bootstrap:', err);
+    console.error('Fatal error during bootstrap:', err);
     process.exit(1);
   }
 }

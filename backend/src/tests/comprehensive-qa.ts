@@ -497,7 +497,7 @@ async function runQASuite() {
   logSection('AREA M: UI Fidelity');
   results.push({
     area: 'M. UI fidelity (anti-slop)',
-    test: 'M1. Design token audit against Outbox Labs / ReachInbox Figma spec',
+    test: 'M1. Design token audit against Outbox Labs / ReachInbox design tokens',
     result: 'PASS',
     evidence: `Color tokens verified: Primary Green (#00A343), Soft Green Pill (#E8F5E9), Amber Schedule Badge (#FEF3C7), Neutral Gray Sidebar (#F9FAFB). No AI gradients, no emoji gimmicks, no dark mode slop.`,
   });

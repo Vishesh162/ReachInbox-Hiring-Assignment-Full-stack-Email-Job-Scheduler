@@ -83,7 +83,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      {/* Centered Card matching Figma spec */}
+      {/* Centered Card */}
       <div className="w-full max-w-[390px] bg-white border border-gray-100 rounded-3xl p-8 sm:p-9 shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
         {/* Title */}
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-8">

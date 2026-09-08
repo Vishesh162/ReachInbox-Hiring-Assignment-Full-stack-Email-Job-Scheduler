@@ -55,7 +55,7 @@ export default function Sidebar({
     <aside className="w-64 bg-[#F9FAFB] border-r border-gray-200 flex flex-col justify-between h-screen sticky top-0 select-none">
       {/* Top section: Logo, Profile, Compose CTA, Nav links */}
       <div>
-        {/* Brand Logo matching Figma */}
+        {/* Brand Logo */}
         <div className="p-5 flex items-center gap-2 border-b border-gray-100">
           <div className="w-7 h-7 bg-[#00A343] rounded flex items-center justify-center text-white font-bold text-sm shadow-sm">
             OX
@@ -89,7 +89,7 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Compose Button matching Figma */}
+        {/* Compose Button */}
         <div className="px-4 mb-4">
           <button
             type="button"

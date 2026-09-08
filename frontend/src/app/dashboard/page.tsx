@@ -167,7 +167,7 @@ function DashboardContent() {
 
   return (
     <div className="flex min-h-screen bg-white">
-      {/* Left Sidebar matching Figma */}
+      {/* Left Sidebar */}
       <Sidebar
         user={user}
         activeTab={activeTab}
@@ -211,7 +211,7 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* Top Bar with Search matching Figma */}
+        {/* Top Bar with Search */}
         <header className="h-16 border-b border-gray-200 px-6 flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="flex items-center gap-3 flex-1 max-w-2xl">
             <div className="relative flex-1">

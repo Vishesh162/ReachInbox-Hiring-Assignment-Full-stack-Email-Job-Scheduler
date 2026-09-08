@@ -83,7 +83,7 @@ export async function verifyGoogleTokenAndGetUser(idToken: string) {
 }
 
 /**
- * Email/Password or quick demo login matching the Figma screen
+ * Email login for demonstration and testing
  */
 export async function loginWithEmail(email: string, name?: string) {
   const cleanEmail = email.trim().toLowerCase();

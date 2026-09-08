@@ -29,11 +29,7 @@ export default function ComposeModal({
 }: ComposeModalProps) {
   const [selectedSenderId, setSelectedSenderId] = useState<string>('');
   const [recipientInput, setRecipientInput] = useState<string>('');
-  const [recipients, setRecipients] = useState<string[]>([
-    'prospect1@company.com',
-    'jane.smith@host.com',
-    'daniel.k@mail.com',
-  ]);
+  const [recipients, setRecipients] = useState<string[]>([]);
   const [subject, setSubject] = useState<string>('');
   const [delaySec, setDelaySec] = useState<number>(2);
   const [hourlyLimit, setHourlyLimit] = useState<number>(200);
@@ -150,7 +146,7 @@ export default function ComposeModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
       <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl border border-gray-200 flex flex-col max-h-[95vh] overflow-hidden">
-        {/* Top Header Bar matching Figma */}
+        {/* Top Header Bar */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white relative">
           <button
             type="button"
@@ -173,7 +169,7 @@ export default function ComposeModal({
                 <span>Send Later</span>
               </button>
 
-              {/* Send Later Popover matching Figma Image 2 */}
+              {/* Send Later Popover */}
               {showSendLater && (
                 <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-50">
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">
@@ -280,7 +276,7 @@ export default function ComposeModal({
             </div>
           </div>
 
-          {/* To field with chips & Upload List button matching Figma */}
+          {/* To field with chips & Upload List button */}
           <div className="flex items-start gap-4 text-sm pb-2 border-b border-gray-100">
             <span className="text-gray-400 w-16 pt-1">To:</span>
             <div className="flex-1 flex flex-wrap items-center gap-1.5 min-h-[32px]">
@@ -316,7 +312,7 @@ export default function ComposeModal({
               />
             </div>
 
-            {/* Upload List CSV Button matching Figma */}
+            {/* Upload List CSV Button */}
             <div className="shrink-0">
               <input
                 type="file"
@@ -365,7 +361,7 @@ export default function ComposeModal({
             />
           </div>
 
-          {/* Config numerical inputs: Delay and Hourly Limit matching Figma */}
+          {/* Config numerical inputs: Delay and Hourly Limit */}
           <div className="flex flex-wrap items-center gap-6 text-xs text-gray-600 pt-1">
             <div className="flex items-center gap-2">
               <span>Delay between 2 emails (sec):</span>

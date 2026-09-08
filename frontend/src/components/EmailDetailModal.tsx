@@ -16,7 +16,7 @@ export default function EmailDetailModal({ job, onClose }: EmailDetailModalProps
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header matching Figma */}
+        {/* Header */}
         <div className="p-6 border-b border-gray-100 flex items-start justify-between">
           <div>
             <span className="text-xs text-gray-400 font-mono">Job ID: {job.id}</span>

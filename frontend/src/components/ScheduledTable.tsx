@@ -82,7 +82,7 @@ export default function ScheduledTable({
               {job.recipientEmail}
             </div>
 
-            {/* Orange countdown badge matching Figma screenshot */}
+            {/* Relative countdown badge */}
             <div className="shrink-0">
               <span
                 className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
