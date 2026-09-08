@@ -38,23 +38,34 @@ export default function Sidebar({
         </div>
 
         {/* User Profile Card */}
-        <div className="p-4 mx-3 my-3 bg-white rounded-xl border border-gray-200/80 shadow-xs flex items-center gap-3">
-          <img
-            src={
-              user?.avatarUrl ||
-              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'
-            }
-            alt="Profile Avatar"
-            className="w-10 h-10 rounded-full object-cover border border-gray-100"
-          />
-          <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-semibold text-gray-900 truncate">
-              {user?.name || 'Oliver Brown'}
-            </h2>
-            <p className="text-xs text-gray-500 truncate">
-              {user?.email || 'oliver.brown@reachinbox.ai'}
-            </p>
+        <div className="p-3 mx-3 my-3 bg-white rounded-xl border border-gray-200/80 shadow-xs flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <img
+              src={
+                user?.avatarUrl ||
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'
+              }
+              alt="Profile Avatar"
+              className="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs font-semibold text-gray-900 truncate">
+                {user?.name || 'Oliver Brown'}
+              </h2>
+              <p className="text-[11px] text-gray-500 truncate">
+                {user?.email || 'oliver.brown@reachinbox.ai'}
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={onLogout}
+            title="Logout"
+            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Compose Button matching Figma */}

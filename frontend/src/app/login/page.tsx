@@ -181,6 +181,26 @@ export default function LoginPage() {
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
+
+          <button
+            type="button"
+            onClick={async () => {
+              setLoading(true);
+              setError(null);
+              try {
+                await api.loginWithEmail('oliver.brown@reachinbox.ai');
+                router.push('/dashboard');
+              } catch (err: any) {
+                setError(err.message || 'Demo login failed');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            className="w-full py-2.5 px-4 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 text-gray-600 text-xs font-medium rounded-lg border border-gray-200 transition-colors"
+          >
+            Instant Demo Login (Oliver Brown)
+          </button>
         </form>
       </div>
     </div>

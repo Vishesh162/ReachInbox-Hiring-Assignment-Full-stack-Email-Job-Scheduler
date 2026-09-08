@@ -9,7 +9,7 @@ import ScheduledTable from '@/components/ScheduledTable';
 import SentTable from '@/components/SentTable';
 import ComposeModal from '@/components/ComposeModal';
 import EmailDetailModal from '@/components/EmailDetailModal';
-import { Search, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 
 function DashboardContent() {
   const router = useRouter();
@@ -209,18 +209,50 @@ function DashboardContent() {
               title="Refresh queue data"
               className="p-2 text-gray-500 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-brand-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#00A343]' : ''}`} />
             </button>
 
-            <div className="h-4 w-[1px] bg-gray-200"></div>
-
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 hidden md:inline">
               {searchResults !== null
                 ? `Search results (${searchResults.length})`
                 : activeTab === 'scheduled'
                 ? `Scheduled (${scheduledJobs.length})`
                 : `Sent (${sentJobs.length})`}
             </span>
+
+            <div className="h-5 w-[1px] bg-gray-200"></div>
+
+            {/* User Profile & Logout Button */}
+            {user && (
+              <div className="flex items-center gap-2.5">
+                <img
+                  src={
+                    user.avatarUrl ||
+                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'
+                  }
+                  alt={user.name}
+                  className="w-7 h-7 rounded-full object-cover border border-gray-200"
+                />
+                <div className="hidden lg:block text-left">
+                  <div className="text-xs font-semibold text-gray-900 leading-tight truncate max-w-[120px]">
+                    {user.name}
+                  </div>
+                  <div className="text-[10px] text-gray-500 leading-tight truncate max-w-[120px]">
+                    {user.email}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  title="Log out of ReachInbox"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-all"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
