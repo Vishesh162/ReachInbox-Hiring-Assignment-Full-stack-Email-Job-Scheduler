@@ -15,10 +15,11 @@ export async function handleGoogleLogin(req: Request, res: Response) {
 
     const { user, token } = await verifyGoogleTokenAndGetUser(idToken);
 
+    const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
     res.cookie('session_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -48,10 +49,11 @@ export async function handleEmailLogin(req: Request, res: Response) {
 
     const { user, token } = await loginWithEmail(email);
 
+    const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
     res.cookie('session_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 

@@ -2,14 +2,35 @@ import { EmailJob, EmailStats, Sender, User } from '../types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+function getStoredToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('reachinbox_token');
+  }
+  return null;
+}
+
+function setStoredToken(token: string | null) {
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('reachinbox_token', token);
+    } else {
+      localStorage.removeItem('reachinbox_token');
+    }
+  }
+}
+
 async function fetcher<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
+  const token = getStoredToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
     credentials: 'include', // Includes HTTP-only session cookies
   });
 
@@ -24,17 +45,21 @@ async function fetcher<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   // Auth
   async loginWithGoogle(idToken: string): Promise<{ success: boolean; user: User; token: string }> {
-    return fetcher('/api/auth/google', {
+    const res = await fetcher<{ success: boolean; user: User; token: string }>('/api/auth/google', {
       method: 'POST',
       body: JSON.stringify({ idToken }),
     });
+    if (res.token) setStoredToken(res.token);
+    return res;
   },
 
   async loginWithEmail(email: string): Promise<{ success: boolean; user: User; token: string }> {
-    return fetcher('/api/auth/email', {
+    const res = await fetcher<{ success: boolean; user: User; token: string }>('/api/auth/email', {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
+    if (res.token) setStoredToken(res.token);
+    return res;
   },
 
   async getMe(): Promise<{ user: User }> {
@@ -42,6 +67,7 @@ export const api = {
   },
 
   async logout(): Promise<{ success: boolean }> {
+    setStoredToken(null);
     return fetcher('/api/auth/logout', { method: 'POST' });
   },
 
