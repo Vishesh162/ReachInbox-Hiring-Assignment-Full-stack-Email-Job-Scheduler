@@ -25,8 +25,11 @@ import {
   Outdent,
   Quote,
   Strikethrough,
-  ChevronsUpDown,
 } from 'lucide-react';
+
+const LINE_HEIGHT_STEPS = ['1.0', '1.15', '1.5', '1.75', '2.0', '2.5'];
+const DEFAULT_LINE_HEIGHT = '1.5';
+const FONT_SIZES = ['12px', '14px', '16px', '18px', '22px', '28px'];
 
 // Custom Paragraph extension to support font-size, line-height, and paragraph indentation
 const CustomParagraph = Paragraph.extend({
@@ -36,18 +39,10 @@ const CustomParagraph = Paragraph.extend({
       fontSize: {
         default: null,
         parseHTML: (element) => element.style.fontSize || null,
-        renderHTML: (attributes) => {
-          if (!attributes.fontSize) return {};
-          return { style: `font-size: ${attributes.fontSize}` };
-        },
       },
       lineHeight: {
-        default: null,
+        default: DEFAULT_LINE_HEIGHT,
         parseHTML: (element) => element.style.lineHeight || null,
-        renderHTML: (attributes) => {
-          if (!attributes.lineHeight) return {};
-          return { style: `line-height: ${attributes.lineHeight}` };
-        },
       },
       indent: {
         default: 0,
@@ -55,12 +50,27 @@ const CustomParagraph = Paragraph.extend({
           const ml = element.style.marginLeft || '0';
           return parseInt(ml, 10) / 24 || 0;
         },
-        renderHTML: (attributes) => {
-          if (!attributes.indent) return {};
-          return { style: `margin-left: ${attributes.indent * 24}px` };
-        },
       },
     };
+  },
+  renderHTML({ HTMLAttributes }) {
+    const styles: string[] = [];
+    if (HTMLAttributes.fontSize) {
+      styles.push(`font-size: ${HTMLAttributes.fontSize}`);
+    }
+    if (HTMLAttributes.lineHeight) {
+      styles.push(`line-height: ${HTMLAttributes.lineHeight}`);
+    }
+    if (HTMLAttributes.indent) {
+      styles.push(`margin-left: ${HTMLAttributes.indent * 24}px`);
+    }
+
+    const { fontSize, lineHeight, indent, style, ...rest } = HTMLAttributes;
+    if (styles.length > 0) {
+      rest.style = style ? `${style}; ${styles.join('; ')}` : styles.join('; ');
+    }
+
+    return ['p', rest, 0];
   },
 });
 
@@ -70,16 +80,12 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
-const FONT_SIZES = ['12px', '14px', '16px', '18px', '22px', '28px'];
-const LINE_HEIGHTS = ['1.2', '1.4', '1.6', '1.8', '2.0'];
-
 export default function RichTextEditor({
   value,
   onChange,
   placeholder = 'Type Your Reply...',
 }: RichTextEditorProps) {
   const [currentFontSizeIndex, setCurrentFontSizeIndex] = useState(1); // default '14px'
-  const [currentLineHeightIndex, setCurrentLineHeightIndex] = useState(2); // default '1.6'
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -118,6 +124,39 @@ export default function RichTextEditor({
     },
   });
 
+  // Read current paragraph's line-height
+  const rawLineHeight =
+    (editor?.getAttributes('paragraph')?.lineHeight as string) || DEFAULT_LINE_HEIGHT;
+  let activeLhIndex = LINE_HEIGHT_STEPS.indexOf(rawLineHeight);
+  if (activeLhIndex === -1) {
+    const numeric = parseFloat(rawLineHeight);
+    if (!isNaN(numeric)) {
+      activeLhIndex = LINE_HEIGHT_STEPS.reduce((prevIdx, currVal, currIdx) => {
+        const prevDiff = Math.abs(parseFloat(LINE_HEIGHT_STEPS[prevIdx]) - numeric);
+        const currDiff = Math.abs(parseFloat(currVal) - numeric);
+        return currDiff < prevDiff ? currIdx : prevIdx;
+      }, 2);
+    } else {
+      activeLhIndex = 2; // '1.5'
+    }
+  }
+
+  const isLhAtMin = activeLhIndex <= 0;
+  const isLhAtMax = activeLhIndex >= LINE_HEIGHT_STEPS.length - 1;
+
+  // Line Height Handlers
+  const handleLineHeightUp = useCallback(() => {
+    if (!editor || isLhAtMax) return;
+    const nextLh = LINE_HEIGHT_STEPS[activeLhIndex + 1];
+    editor.chain().focus().updateAttributes('paragraph', { lineHeight: nextLh }).run();
+  }, [editor, activeLhIndex, isLhAtMax]);
+
+  const handleLineHeightDown = useCallback(() => {
+    if (!editor || isLhAtMin) return;
+    const nextLh = LINE_HEIGHT_STEPS[activeLhIndex - 1];
+    editor.chain().focus().updateAttributes('paragraph', { lineHeight: nextLh }).run();
+  }, [editor, activeLhIndex, isLhAtMin]);
+
   // Font Size Stepper
   const changeFontSize = useCallback(
     (direction: 'up' | 'down') => {
@@ -130,20 +169,6 @@ export default function RichTextEditor({
       editor.chain().focus().updateAttributes('paragraph', { fontSize: size }).run();
     },
     [editor, currentFontSizeIndex]
-  );
-
-  // Line Height Stepper
-  const changeLineHeight = useCallback(
-    (direction: 'up' | 'down') => {
-      if (!editor) return;
-      let nextIndex = direction === 'up' ? currentLineHeightIndex + 1 : currentLineHeightIndex - 1;
-      if (nextIndex < 0) nextIndex = 0;
-      if (nextIndex >= LINE_HEIGHTS.length) nextIndex = LINE_HEIGHTS.length - 1;
-      setCurrentLineHeightIndex(nextIndex);
-      const lh = LINE_HEIGHTS[nextIndex];
-      editor.chain().focus().updateAttributes('paragraph', { lineHeight: lh }).run();
-    },
-    [editor, currentLineHeightIndex]
   );
 
   // Text Alignment Toggle (Cycle Left -> Center -> Right)
@@ -220,8 +245,8 @@ export default function RichTextEditor({
         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
 
         {/* Group 2: [ font size (Tt with up/down stepper) ] */}
-        <div className="flex items-center px-1.5 py-0.5 rounded text-gray-700 bg-white/80 border border-gray-200/80 shadow-2xs">
-          <span className="text-xs font-semibold tracking-tight text-gray-800 pr-1">Tt</span>
+        <div className="flex items-center px-1.5 py-0.5 rounded border border-gray-200 bg-white/80 shadow-2xs">
+          <span className="text-xs font-semibold tracking-tight text-gray-800 pr-1 select-none">Tt</span>
           <div className="flex flex-col -space-y-1">
             <button
               type="button"
@@ -291,7 +316,7 @@ export default function RichTextEditor({
         {/* Separator */}
         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
 
-        {/* Group 4: [ text align | line-height (up/down) ] */}
+        {/* Group 4: [ text align ] */}
         <button
           type="button"
           title="Cycle Text Align"
@@ -302,29 +327,47 @@ export default function RichTextEditor({
           <AlignIcon className="w-3.5 h-3.5" />
         </button>
 
-        {/* Line-height up/down stepper */}
-        <div className="flex items-center px-1 py-0.5 rounded text-gray-700 bg-white/80 border border-gray-200/80 shadow-2xs">
-          <ChevronsUpDown className="w-3 h-3 text-gray-500 mr-0.5" />
-          <div className="flex flex-col -space-y-1">
-            <button
-              type="button"
-              title="Increase line height"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => changeLineHeight('up')}
-              className="p-0.5 hover:text-black hover:bg-gray-100 rounded"
-            >
-              <ChevronUp className="w-2.5 h-2.5 stroke-[2.5]" />
-            </button>
-            <button
-              type="button"
-              title="Decrease line height"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => changeLineHeight('down')}
-              className="p-0.5 hover:text-black hover:bg-gray-100 rounded"
-            >
-              <ChevronDown className="w-2.5 h-2.5 stroke-[2.5]" />
-            </button>
-          </div>
+        {/* Vertical divider */}
+        <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
+
+        {/* Line-height stepper: two plain chevrons stacked, up on top, down below, no icon/label, thin box outline */}
+        <div className="flex flex-col justify-center items-center px-1.5 py-0.5 rounded border border-gray-200 bg-white/80 shadow-2xs">
+          <button
+            type="button"
+            title={
+              isLhAtMax
+                ? 'Line height: 2.5 (Max)'
+                : `Increase line height to ${LINE_HEIGHT_STEPS[activeLhIndex + 1]}`
+            }
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleLineHeightUp}
+            disabled={isLhAtMax}
+            className={`p-0.5 rounded transition-colors ${
+              isLhAtMax
+                ? 'opacity-30 cursor-not-allowed text-gray-400'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <ChevronUp className="w-2.5 h-2.5 stroke-[2.5]" />
+          </button>
+          <button
+            type="button"
+            title={
+              isLhAtMin
+                ? 'Line height: 1.0 (Min)'
+                : `Decrease line height to ${LINE_HEIGHT_STEPS[activeLhIndex - 1]}`
+            }
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleLineHeightDown}
+            disabled={isLhAtMin}
+            className={`p-0.5 rounded transition-colors ${
+              isLhAtMin
+                ? 'opacity-30 cursor-not-allowed text-gray-400'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <ChevronDown className="w-2.5 h-2.5 stroke-[2.5]" />
+          </button>
         </div>
 
         {/* Separator */}
