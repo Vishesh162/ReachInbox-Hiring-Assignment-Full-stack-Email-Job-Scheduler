@@ -178,16 +178,6 @@ export default function Sidebar({
           </span>
           <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
         </a>
-
-        {/* Logout */}
-        <button
-          type="button"
-          onClick={onLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50/50 rounded-lg transition-colors"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Logout</span>
-        </button>
       </div>
     </aside>
   );
