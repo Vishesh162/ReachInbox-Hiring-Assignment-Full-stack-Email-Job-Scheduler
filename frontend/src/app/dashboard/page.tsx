@@ -139,6 +139,22 @@ function DashboardContent() {
     }
   };
 
+  const handleDisconnectSlack = async () => {
+    try {
+      await api.disconnectSlack();
+      setUser((prev) => (prev ? { ...prev, hasSlack: false, slackTeamId: null, slackChannelId: null } : null));
+      setBannerMessage({
+        type: 'success',
+        text: 'Slack workspace disconnected successfully.',
+      });
+    } catch (err: any) {
+      setBannerMessage({
+        type: 'error',
+        text: err.message || 'Failed to disconnect Slack workspace.',
+      });
+    }
+  };
+
   const baseJobs = searchResults !== null
     ? searchResults
     : activeTab === 'scheduled'
@@ -164,6 +180,7 @@ function DashboardContent() {
         stats={stats}
         onLogout={handleLogout}
         onConnectSlack={handleConnectSlack}
+        onDisconnectSlack={handleDisconnectSlack}
       />
 
       {/* Main Content Area */}

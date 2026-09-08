@@ -118,4 +118,11 @@ export const api = {
   async getSlackAuthUrl(): Promise<{ url: string }> {
     return fetcher('/api/slack/oauth/start');
   },
+
+  async disconnectSlack(): Promise<{ success: boolean; message: string }> {
+    return fetcher('/api/slack/disconnect', {
+      method: 'POST',
+    });
+  },
 };
+

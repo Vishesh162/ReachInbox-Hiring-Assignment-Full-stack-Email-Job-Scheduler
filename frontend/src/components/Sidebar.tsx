@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { User, EmailStats } from '@/types';
-import { Clock, Send, Plus, ExternalLink, Slack, LogOut, CheckCircle2 } from 'lucide-react';
+import { Clock, Send, Plus, ExternalLink, Slack, LogOut, CheckCircle2, X } from 'lucide-react';
 
 interface SidebarProps {
   user: User | null;
@@ -12,6 +12,7 @@ interface SidebarProps {
   stats: EmailStats | null;
   onLogout: () => void;
   onConnectSlack: () => void;
+  onDisconnectSlack?: () => void;
 }
 
 function UserAvatar({ user, size = 'md' }: { user: User | null; size?: 'sm' | 'md' }) {
@@ -48,6 +49,7 @@ export default function Sidebar({
   stats,
   onLogout,
   onConnectSlack,
+  onDisconnectSlack,
 }: SidebarProps) {
   return (
     <aside className="w-64 bg-[#F9FAFB] border-r border-gray-200 flex flex-col justify-between h-screen sticky top-0 select-none">
@@ -148,11 +150,23 @@ export default function Sidebar({
         {/* Slack Connection Pill */}
         {user?.hasSlack ? (
           <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-medium text-emerald-800">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Slack Connected</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">Slack Connected</span>
             </div>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              {onDisconnectSlack && (
+                <button
+                  type="button"
+                  onClick={onDisconnectSlack}
+                  title="Disconnect Slack workspace"
+                  className="ml-1 text-emerald-700 hover:text-red-600 hover:bg-emerald-100/80 p-0.5 rounded transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <button

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { getSlackAuthorizeUrl, exchangeSlackCode } from '../services/slackService.js';
 import { env } from '../config/env.js';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { prisma } from '../db/client.js';
 
 export async function getSlackAuthUrlHandler(req: AuthenticatedRequest, res: Response) {
   try {
@@ -54,3 +55,28 @@ export async function slackCallbackHandler(req: Request, res: Response) {
     return res.redirect(`${env.FRONTEND_URL}/dashboard?slack=error&msg=${encodeURIComponent(err.message)}`);
   }
 }
+
+export async function disconnectSlackHandler(req: AuthenticatedRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        slackAccessToken: null,
+        slackTeamId: null,
+        slackChannelId: null,
+      },
+    });
+
+    console.log(`[Slack] Disconnected Slack for user: ${userId}`);
+    return res.json({ success: true, message: 'Slack disconnected successfully' });
+  } catch (err: any) {
+    console.error('[Slack Disconnect Error]', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
