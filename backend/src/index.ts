@@ -39,6 +39,10 @@ app.use(cookieParser());
 const queueRouter = setupQueueDashboard();
 app.use('/admin/queues', queueRouter);
 
+app.get('/', (req, res) => {
+  res.redirect('/api');
+});
+
 // API Routes
 app.use('/api', apiRouter);
 

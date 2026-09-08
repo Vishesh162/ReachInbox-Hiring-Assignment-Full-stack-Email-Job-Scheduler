@@ -13,6 +13,23 @@ apiRouter.use('/emails', emailRoutes);
 apiRouter.use('/senders', senderRoutes);
 apiRouter.use('/slack', slackRoutes);
 
+apiRouter.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'reachinbox-scheduler-backend',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      senders: '/api/senders',
+      auth: '/api/auth',
+      campaigns: '/api/campaigns',
+      emails: '/api/emails',
+      slack: '/api/slack',
+      adminQueues: '/admin/queues',
+    },
+  });
+});
+
 apiRouter.get('/health', (req, res) => {
   res.json({
     status: 'ok',
