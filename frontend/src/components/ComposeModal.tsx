@@ -82,6 +82,28 @@ export default function ComposeModal({
     }
   };
 
+  // Selection & Media refs
+  const savedSelectionRef = useRef<Range | null>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const [showImageMenu, setShowImageMenu] = useState(false);
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
+      savedSelectionRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+
+  const restoreSelection = () => {
+    if (savedSelectionRef.current) {
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(savedSelectionRef.current);
+      }
+    }
+  };
+
   const executeCommand = (command: string, value: string | undefined = undefined) => {
     if (editorRef.current) {
       editorRef.current.focus();
@@ -94,17 +116,78 @@ export default function ComposeModal({
   };
 
   const handleInsertLink = () => {
+    saveSelection();
+    const sel = window.getSelection();
+    const selectedText = sel ? sel.toString() : '';
+
     const url = window.prompt('Enter link URL (e.g. https://reachinbox.ai):', 'https://');
-    if (url && url.trim()) {
-      executeCommand('createLink', url.trim());
+    if (!url || !url.trim() || url.trim() === 'https://') return;
+
+    if (editorRef.current) {
+      editorRef.current.focus();
     }
+    restoreSelection();
+
+    if (selectedText.trim()) {
+      document.execCommand('createLink', false, url.trim());
+    } else {
+      const linkText = window.prompt('Enter link text:', url.trim()) || url.trim();
+      const linkHtml = `<a href="${url.trim()}" target="_blank" rel="noopener noreferrer" style="color: #00A343; text-decoration: underline; font-weight: 500;">${linkText}</a>&nbsp;`;
+      document.execCommand('insertHTML', false, linkHtml);
+    }
+
+    if (editorRef.current) {
+      setBody(editorRef.current.innerHTML);
+    }
+    updateActiveStyles();
   };
 
-  const handleInsertImage = () => {
-    const url = window.prompt('Enter image URL:', 'https://');
-    if (url && url.trim()) {
-      executeCommand('insertImage', url.trim());
+  const handleInsertImageUrl = () => {
+    saveSelection();
+    const url = window.prompt('Enter image URL (e.g. https://images.unsplash.com/...):', 'https://');
+    if (!url || !url.trim() || url.trim() === 'https://') return;
+
+    if (editorRef.current) {
+      editorRef.current.focus();
     }
+    restoreSelection();
+
+    const imgHtml = `<img src="${url.trim()}" alt="Inserted image" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; display: block;" /><br/>`;
+    document.execCommand('insertHTML', false, imgHtml);
+
+    if (editorRef.current) {
+      setBody(editorRef.current.innerHTML);
+    }
+    setShowImageMenu(false);
+  };
+
+  const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size exceeds 5MB limit.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      if (editorRef.current) {
+        editorRef.current.focus();
+      }
+      restoreSelection();
+
+      const imgHtml = `<img src="${base64}" alt="${file.name}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; display: block;" /><br/>`;
+      document.execCommand('insertHTML', false, imgHtml);
+
+      if (editorRef.current) {
+        setBody(editorRef.current.innerHTML);
+      }
+    };
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = '';
+    setShowImageMenu(false);
   };
 
   // Send Later popover state
@@ -569,21 +652,64 @@ export default function ComposeModal({
               <button
                 type="button"
                 title="Insert Link"
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  saveSelection();
+                }}
                 onClick={handleInsertLink}
                 className="p-1.5 hover:bg-gray-200/60 rounded text-gray-600 transition-colors"
               >
                 <Link2 className="w-3.5 h-3.5" />
               </button>
-              <button
-                type="button"
-                title="Insert Image URL"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleInsertImage}
-                className="p-1.5 hover:bg-gray-200/60 rounded text-gray-600 transition-colors"
-              >
-                <ImageIcon className="w-3.5 h-3.5" />
-              </button>
+
+              {/* Image Menu Popover */}
+              <div className="relative inline-block">
+                <input
+                  type="file"
+                  ref={imageFileInputRef}
+                  accept="image/*"
+                  onChange={handleImageFileSelect}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  title="Insert Image (Upload or URL)"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    saveSelection();
+                  }}
+                  onClick={() => setShowImageMenu(!showImageMenu)}
+                  className={`p-1.5 rounded transition-colors ${
+                    showImageMenu ? 'bg-gray-200 text-gray-900 shadow-2xs' : 'text-gray-600 hover:bg-gray-200/60'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                </button>
+
+                {showImageMenu && (
+                  <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50 text-xs text-gray-700">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        imageFileInputRef.current?.click();
+                        setShowImageMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-gray-500" />
+                      <span>Upload from Device</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleInsertImageUrl}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5 text-gray-500" />
+                      <span>Insert from URL</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* ContentEditable Rich Text Body matching Figma */}
@@ -596,10 +722,18 @@ export default function ComposeModal({
               onInput={(e) => {
                 setBody(e.currentTarget.innerHTML);
                 updateActiveStyles();
+                saveSelection();
               }}
-              onKeyUp={updateActiveStyles}
-              onMouseUp={updateActiveStyles}
-              className="w-full min-h-[180px] max-h-[320px] p-4 text-sm text-gray-900 focus:outline-none overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:pointer-events-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-blue-600 [&_a]:underline [&_img]:max-w-full [&_img]:rounded-md"
+              onKeyUp={() => {
+                updateActiveStyles();
+                saveSelection();
+              }}
+              onMouseUp={() => {
+                updateActiveStyles();
+                saveSelection();
+              }}
+              onBlur={saveSelection}
+              className="w-full min-h-[180px] max-h-[320px] p-4 text-sm text-gray-900 focus:outline-none overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:pointer-events-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#00A343] [&_a]:underline [&_a]:font-medium [&_img]:max-w-full [&_img]:rounded-md"
             />
           </div>
         </div>
