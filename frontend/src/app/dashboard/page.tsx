@@ -11,6 +11,29 @@ import ComposeModal from '@/components/ComposeModal';
 import EmailDetailModal from '@/components/EmailDetailModal';
 import { Search, RefreshCw, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 
+function UserAvatar({ user }: { user: User | null }) {
+  const [imgError, setImgError] = useState(false);
+  const initial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
+
+  if (user?.avatarUrl && !imgError) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.name || 'User'}
+        referrerPolicy="no-referrer"
+        onError={() => setImgError(true)}
+        className="w-7 h-7 rounded-full object-cover border border-gray-200 shrink-0"
+      />
+    );
+  }
+
+  return (
+    <div className="w-7 h-7 rounded-full bg-[#00A343] text-white font-semibold text-xs flex items-center justify-center border border-emerald-600/20 shrink-0 shadow-2xs select-none">
+      {initial}
+    </div>
+  );
+}
+
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -225,14 +248,7 @@ function DashboardContent() {
             {/* User Profile & Logout Button */}
             {user && (
               <div className="flex items-center gap-2.5">
-                <img
-                  src={
-                    user.avatarUrl ||
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'
-                  }
-                  alt={user.name}
-                  className="w-7 h-7 rounded-full object-cover border border-gray-200"
-                />
+                <UserAvatar user={user} />
                 <div className="hidden lg:block text-left">
                   <div className="text-xs font-semibold text-gray-900 leading-tight truncate max-w-[120px]">
                     {user.name}

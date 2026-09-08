@@ -14,6 +14,32 @@ interface SidebarProps {
   onConnectSlack: () => void;
 }
 
+function UserAvatar({ user, size = 'md' }: { user: User | null; size?: 'sm' | 'md' }) {
+  const [imgError, setImgError] = React.useState(false);
+  const initial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
+  const sizeClasses = size === 'sm' ? 'w-7 h-7 text-xs' : 'w-9 h-9 text-sm';
+
+  if (user?.avatarUrl && !imgError) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.name || 'User'}
+        referrerPolicy="no-referrer"
+        onError={() => setImgError(true)}
+        className={`${sizeClasses} rounded-full object-cover border border-gray-200 shrink-0`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${sizeClasses} rounded-full bg-[#00A343] text-white font-semibold flex items-center justify-center border border-emerald-600/20 shrink-0 shadow-2xs select-none`}
+    >
+      {initial}
+    </div>
+  );
+}
+
 export default function Sidebar({
   user,
   activeTab,
@@ -40,14 +66,7 @@ export default function Sidebar({
         {/* User Profile Card */}
         <div className="p-3 mx-3 my-3 bg-white rounded-xl border border-gray-200/80 shadow-xs flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <img
-              src={
-                user?.avatarUrl ||
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'
-              }
-              alt="Profile Avatar"
-              className="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0"
-            />
+            <UserAvatar user={user} />
             <div className="min-w-0 flex-1">
               <h2 className="text-xs font-semibold text-gray-900 truncate">
                 {user?.name || 'Oliver Brown'}
