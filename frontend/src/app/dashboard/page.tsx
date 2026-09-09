@@ -155,6 +155,23 @@ function DashboardContent() {
     }
   };
 
+  const handleCancelJob = async (id: string) => {
+    try {
+      await api.deleteEmail(id);
+      setBannerMessage({
+        type: 'success',
+        text: 'Scheduled email cancelled and removed from queue.',
+      });
+      fetchData();
+      if (selectedJob?.id === id) setSelectedJob(null);
+    } catch (err: any) {
+      setBannerMessage({
+        type: 'error',
+        text: err.message || 'Failed to cancel scheduled email.',
+      });
+    }
+  };
+
   const baseJobs = searchResults !== null
     ? searchResults
     : activeTab === 'scheduled'
@@ -296,6 +313,7 @@ function DashboardContent() {
               loading={loading}
               onRefresh={fetchData}
               onSelectJob={(job) => setSelectedJob(job)}
+              onCancelJob={handleCancelJob}
             />
           ) : activeTab === 'sent' && searchResults === null ? (
             <SentTable
@@ -315,6 +333,7 @@ function DashboardContent() {
                 loading={false}
                 onRefresh={fetchData}
                 onSelectJob={(job) => setSelectedJob(job)}
+                onCancelJob={handleCancelJob}
               />
             </div>
           )}
@@ -336,6 +355,7 @@ function DashboardContent() {
       <EmailDetailModal
         job={selectedJob}
         onClose={() => setSelectedJob(null)}
+        onCancelJob={handleCancelJob}
       />
     </div>
   );

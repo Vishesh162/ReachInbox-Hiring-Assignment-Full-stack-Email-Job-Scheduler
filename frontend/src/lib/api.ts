@@ -140,6 +140,12 @@ export const api = {
     return fetcher(`/api/emails/search?${params.toString()}`);
   },
 
+  async deleteEmail(id: string): Promise<{ success: boolean; message: string }> {
+    return fetcher(`/api/emails/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   // Slack
   async getSlackAuthUrl(): Promise<{ url: string }> {
     return fetcher('/api/slack/oauth/start');

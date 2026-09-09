@@ -208,3 +208,42 @@ export async function getEmailStats(req: AuthenticatedRequest, res: Response) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+export async function deleteEmailJob(req: AuthenticatedRequest, res: Response) {
+  try {
+    const userId = req.user?.id;
+    const { id } = req.params;
+
+    const emailJob = await prisma.emailJob.findUnique({
+      where: { id },
+      include: { campaign: true },
+    });
+
+    if (!emailJob) {
+      return res.status(404).json({ error: 'Email job not found' });
+    }
+
+    if (emailJob.campaign?.userId && emailJob.campaign.userId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized to delete this job' });
+    }
+
+    // Remove from BullMQ queue if pending/delayed
+    try {
+      const { emailQueue, getDeterministicJobId } = await import('../queues/emailQueue.js');
+      const targetBullId = emailJob.bullJobId || getDeterministicJobId(id);
+      const bullJob = await emailQueue.getJob(targetBullId);
+      if (bullJob) {
+        await bullJob.remove();
+      }
+    } catch (queueErr: any) {
+      console.warn('[Queue Remove Warning]', queueErr.message);
+    }
+
+    // Delete from PostgreSQL database
+    await prisma.emailJob.delete({ where: { id } });
+
+    return res.json({ success: true, message: 'Job cancelled and deleted successfully' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+}

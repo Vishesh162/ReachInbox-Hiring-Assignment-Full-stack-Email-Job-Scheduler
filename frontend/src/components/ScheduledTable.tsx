@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { EmailJob } from '@/types';
-import { Clock, RefreshCw, Calendar, AlertCircle, Star } from 'lucide-react';
+import { Clock, RefreshCw, Calendar, AlertCircle, Star, Trash2 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 
 interface ScheduledTableProps {
@@ -10,6 +10,7 @@ interface ScheduledTableProps {
   loading: boolean;
   onRefresh: () => void;
   onSelectJob?: (job: EmailJob) => void;
+  onCancelJob?: (id: string) => void;
 }
 
 export default function ScheduledTable({
@@ -17,6 +18,7 @@ export default function ScheduledTable({
   loading,
   onRefresh,
   onSelectJob,
+  onCancelJob,
 }: ScheduledTableProps) {
   const [starredIds, setStarredIds] = React.useState<Set<string>>(() => {
     if (typeof window !== 'undefined') {
@@ -157,6 +159,21 @@ export default function ScheduledTable({
                     : 'text-gray-300 stroke-[1.5] hover:text-amber-400'
                 }`}
               />
+            </button>
+
+            {/* Cancel & Delete Job Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Cancel and remove scheduled email to ${job.recipientEmail}?`)) {
+                  onCancelJob?.(job.id);
+                }
+              }}
+              className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-600 p-1 rounded-md hover:bg-red-50 transition-all shrink-0"
+              title="Cancel & Delete this scheduled email"
+            >
+              <Trash2 className="w-4 h-4 stroke-[1.5]" />
             </button>
           </div>
         );

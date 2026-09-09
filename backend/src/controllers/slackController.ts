@@ -48,11 +48,21 @@ export async function slackCallbackHandler(req: Request, res: Response) {
 
     console.log(`[Slack] OAuth exchange complete for team: ${result.teamName} (user: ${userId || 'default'})`);
 
+    const targetFrontend =
+      process.env.RENDER || req.headers.host?.includes('render.com')
+        ? 'https://reach-inbox-hiring-assignment-full-brown.vercel.app'
+        : (env.FRONTEND_URL.includes('localhost') ? 'https://reach-inbox-hiring-assignment-full-brown.vercel.app' : env.FRONTEND_URL);
+
     // Redirect back to frontend dashboard with success banner
-    return res.redirect(`${env.FRONTEND_URL}/dashboard?slack=connected&team=${encodeURIComponent(result.teamName || '')}`);
+    return res.redirect(`${targetFrontend}/dashboard?slack=connected&team=${encodeURIComponent(result.teamName || '')}`);
   } catch (err: any) {
     console.error('[Slack Callback Error]', err.message);
-    return res.redirect(`${env.FRONTEND_URL}/dashboard?slack=error&msg=${encodeURIComponent(err.message)}`);
+    const targetFrontend =
+      process.env.RENDER || req.headers.host?.includes('render.com')
+        ? 'https://reach-inbox-hiring-assignment-full-brown.vercel.app'
+        : (env.FRONTEND_URL.includes('localhost') ? 'https://reach-inbox-hiring-assignment-full-brown.vercel.app' : env.FRONTEND_URL);
+
+    return res.redirect(`${targetFrontend}/dashboard?slack=error&msg=${encodeURIComponent(err.message)}`);
   }
 }
 

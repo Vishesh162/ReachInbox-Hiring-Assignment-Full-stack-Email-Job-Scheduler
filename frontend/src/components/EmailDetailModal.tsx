@@ -8,9 +8,10 @@ import { format } from 'date-fns';
 interface EmailDetailModalProps {
   job: EmailJob | null;
   onClose: () => void;
+  onCancelJob?: (id: string) => void;
 }
 
-export default function EmailDetailModal({ job, onClose }: EmailDetailModalProps) {
+export default function EmailDetailModal({ job, onClose, onCancelJob }: EmailDetailModalProps) {
   if (!job) return null;
 
   return (
@@ -80,6 +81,20 @@ export default function EmailDetailModal({ job, onClose }: EmailDetailModalProps
               <span>View Ethereal Mailbox</span>
               <ExtLinkIcon className="w-3.5 h-3.5" />
             </a>
+            {job.status !== 'sent' && onCancelJob && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(`Cancel and remove scheduled email to ${job.recipientEmail}?`)) {
+                    onCancelJob(job.id);
+                    onClose();
+                  }
+                }}
+                className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-semibold transition-colors"
+              >
+                Cancel Email
+              </button>
+            )}
             <button
               onClick={onClose}
               className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold"
