@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { EmailJob } from '@/types';
-import { X, Clock, Send, AlertCircle, ExternalLink, Calendar } from 'lucide-react';
+import { X as CloseIcon, Clock, Send, AlertCircle, ExternalLink as ExtLinkIcon, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface EmailDetailModalProps {
@@ -26,7 +26,7 @@ export default function EmailDetailModal({ job, onClose }: EmailDetailModalProps
             onClick={onClose}
             className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
           >
-            <X className="w-5 h-5" />
+            <CloseIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -78,7 +78,7 @@ export default function EmailDetailModal({ job, onClose }: EmailDetailModalProps
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#00A343] hover:underline font-medium"
             >
               <span>View Ethereal Mailbox</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExtLinkIcon className="w-3.5 h-3.5" />
             </a>
             <button
               onClick={onClose}

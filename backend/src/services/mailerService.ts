@@ -52,6 +52,45 @@ export async function getTransporterForSender(senderId: string): Promise<Transpo
   return transporter;
 }
 
+async function sendViaRelay(
+  sender: any,
+  to: string,
+  subject: string,
+  body: string
+): Promise<SendMailResult> {
+  const relayEndpoint =
+    process.env.MAIL_RELAY_URL ||
+    'https://reach-inbox-hiring-assignment-full-brown.vercel.app/api/relay-mail';
+
+  const response = await fetch(relayEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      host: sender.host,
+      port: sender.port,
+      user: sender.smtpUser,
+      pass: sender.smtpPass,
+      from: `"ReachInbox Outreach" <${sender.email}>`,
+      to,
+      subject,
+      text: body.replace(/<[^>]+>/g, ''),
+      html: body.includes('<')
+        ? `<div style="font-family: sans-serif; line-height: 1.6;">${body}</div>`
+        : `<div style="font-family: sans-serif; line-height: 1.6;">${body.replace(/\n/g, '<br/>')}</div>`,
+    }),
+  });
+
+  const data = (await response.json()) as any;
+  if (!response.ok || !data.success) {
+    throw new Error(data.error || 'Failed to dispatch email via relay endpoint');
+  }
+
+  return {
+    messageId: data.messageId,
+    previewUrl: data.previewUrl,
+  };
+}
+
 /**
  * Sends an email and logs the preview URL
  */
@@ -64,6 +103,22 @@ export async function sendEmail({
   const sender = await prisma.sender.findUnique({ where: { id: senderId } });
   if (!sender) {
     throw new Error(`Sender with ID ${senderId} does not exist`);
+  }
+
+  // On Render Free Tier, outbound SMTP ports (25, 465, 587) are firewalled by Render
+  const isRenderEnvironment = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID);
+
+  if (isRenderEnvironment) {
+    try {
+      const relayResult = await sendViaRelay(sender, to, subject, body);
+      console.log(`[Mailer] Sent email via relay to ${to} (MessageID: ${relayResult.messageId})`);
+      if (relayResult.previewUrl) {
+        console.log(`[Mailer] Ethereal Preview URL: ${relayResult.previewUrl}`);
+      }
+      return relayResult;
+    } catch (relayErr: any) {
+      console.warn(`[Mailer Relay Warning] Relay failed (${relayErr.message}), falling back to direct SMTP...`);
+    }
   }
 
   let transporter = await getTransporterForSender(senderId);
@@ -82,10 +137,18 @@ export async function sendEmail({
   try {
     info = await transporter.sendMail(mailOptions);
   } catch (err: any) {
-    console.warn(`[Mailer] Initial sendMail failed (${err.message}), clearing cache & retrying...`);
-    transporterCache.delete(senderId);
-    transporter = await getTransporterForSender(senderId);
-    info = await transporter.sendMail(mailOptions);
+    console.warn(`[Mailer] Direct SMTP failed (${err.message}), falling back to HTTPS relay...`);
+    try {
+      const relayResult = await sendViaRelay(sender, to, subject, body);
+      console.log(`[Mailer] Sent email via fallback relay to ${to} (MessageID: ${relayResult.messageId})`);
+      if (relayResult.previewUrl) {
+        console.log(`[Mailer] Ethereal Preview URL: ${relayResult.previewUrl}`);
+      }
+      return relayResult;
+    } catch (relayErr: any) {
+      console.error(`[Mailer] Relay fallback also failed:`, relayErr.message);
+      throw err;
+    }
   }
 
   const previewUrl = nodemailer.getTestMessageUrl(info);

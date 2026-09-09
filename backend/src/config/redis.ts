@@ -2,7 +2,7 @@ import Redis, { RedisOptions } from 'ioredis';
 import { env } from './env.js';
 
 const redisOptions: RedisOptions = {
-  maxRetriesPerRequest: null, // Required by BullMQ
+  maxRetriesPerRequest: null, 
   enableReadyCheck: false,
   retryStrategy(times) {
     const delay = Math.min(times * 200, 3000);
