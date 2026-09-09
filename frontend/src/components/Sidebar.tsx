@@ -181,7 +181,7 @@ export default function Sidebar({
 
         {/* Live BullMQ Queue Dashboard Link */}
         <a
-          href="http://localhost:5000/admin/queues"
+          href="https://reachinbox-scheduler-api-19at.onrender.com/admin/queues"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-between px-3 py-2 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-lg transition-colors"
