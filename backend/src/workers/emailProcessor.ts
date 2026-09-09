@@ -150,14 +150,23 @@ export async function processEmailJob(job: Job<EmailJobPayload>) {
       `[Worker Success] EmailJob ${emailJobId} sent successfully to ${emailJob.recipientEmail}. Preview: ${sendResult.previewUrl || 'none'}`
     );
   } catch (err: any) {
-    console.error(`[Worker Failure] Failed to send EmailJob ${emailJobId}:`, err.message);
+    const maxAttempts = job.opts.attempts || 3;
+    const currentAttempt = job.attemptsMade || 1;
+    const isFinalAttempt = currentAttempt >= maxAttempts;
 
-    // Update DB with failure
+    console.error(
+      `[Worker Failure] Failed to send EmailJob ${emailJobId} (Attempt ${currentAttempt}/${maxAttempts}):`,
+      err.message
+    );
+
+    // Update DB: only transition permanently to 'failed' on final attempt, otherwise leave 'scheduled' for BullMQ retry
     await prisma.emailJob.update({
       where: { id: emailJobId },
       data: {
-        status: 'failed',
-        error: err.message,
+        status: isFinalAttempt ? 'failed' : 'scheduled',
+        error: isFinalAttempt
+          ? err.message
+          : `Attempt ${currentAttempt}/${maxAttempts} failed: ${err.message}`,
       },
     });
 
@@ -169,7 +178,7 @@ export async function processEmailJob(job: Job<EmailJobPayload>) {
       recipient: emailJob.recipientEmail,
       subject: emailJob.subject,
       body: emailJob.body,
-      status: 'failed',
+      status: isFinalAttempt ? 'failed' : 'scheduled',
       scheduledFor: emailJob.scheduledFor.toISOString(),
       sentAt: null,
       error: err.message,

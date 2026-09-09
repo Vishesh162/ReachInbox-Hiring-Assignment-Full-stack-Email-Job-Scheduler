@@ -39,6 +39,13 @@ export async function getTransporterForSender(senderId: string): Promise<Transpo
       user: sender.smtpUser,
       pass: sender.smtpPass,
     },
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 25000,
+    dnsTimeout: 10000,
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
 
   transporterCache.set(senderId, transporter);
@@ -59,9 +66,9 @@ export async function sendEmail({
     throw new Error(`Sender with ID ${senderId} does not exist`);
   }
 
-  const transporter = await getTransporterForSender(senderId);
+  let transporter = await getTransporterForSender(senderId);
 
-  const info = await transporter.sendMail({
+  const mailOptions = {
     from: `"ReachInbox Outreach" <${sender.email}>`,
     to,
     subject,
@@ -69,7 +76,17 @@ export async function sendEmail({
     html: body.includes('<')
       ? `<div style="font-family: sans-serif; line-height: 1.6;">${body}</div>`
       : `<div style="font-family: sans-serif; line-height: 1.6;">${body.replace(/\n/g, '<br/>')}</div>`,
-  });
+  };
+
+  let info;
+  try {
+    info = await transporter.sendMail(mailOptions);
+  } catch (err: any) {
+    console.warn(`[Mailer] Initial sendMail failed (${err.message}), clearing cache & retrying...`);
+    transporterCache.delete(senderId);
+    transporter = await getTransporterForSender(senderId);
+    info = await transporter.sendMail(mailOptions);
+  }
 
   const previewUrl = nodemailer.getTestMessageUrl(info);
   console.log(`[Mailer] Sent email to ${to} (MessageID: ${info.messageId})`);
