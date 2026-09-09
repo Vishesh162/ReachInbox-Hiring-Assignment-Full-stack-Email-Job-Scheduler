@@ -62,18 +62,19 @@ export async function processEmailJob(job: Job<EmailJobPayload>) {
     const nextWindowDate = getNextHourWindowDate();
     const delayUntilNextWindow = Math.max(1000, nextWindowDate.getTime() - Date.now());
 
-    // Defer to start of next UTC hour
+    const rescheduledJobId = `emailjob_${emailJobId}_rescheduled_${nextWindowDate.getTime()}`;
+    await enqueueDelayedEmail(emailJobId, delayUntilNextWindow, rescheduledJobId);
+
+    // Defer to start of next UTC hour and update bullJobId
     await prisma.emailJob.update({
       where: { id: emailJobId },
       data: {
         status: 'rescheduled',
         scheduledFor: nextWindowDate,
+        bullJobId: rescheduledJobId,
         error: `Rate limit hit in window ${rateLimitResult.window}. Deferred to ${nextWindowDate.toISOString()}`,
       },
     });
-
-    const rescheduledJobId = `emailjob_${emailJobId}_rescheduled_${nextWindowDate.getTime()}`;
-    await enqueueDelayedEmail(emailJobId, delayUntilNextWindow, rescheduledJobId);
 
     await indexEmailDocument({
       id: emailJob.id,

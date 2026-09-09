@@ -227,13 +227,34 @@ export async function deleteEmailJob(req: AuthenticatedRequest, res: Response) {
       return res.status(403).json({ error: 'Unauthorized to delete this job' });
     }
 
-    // Remove from BullMQ queue if pending/delayed
+    // Remove from BullMQ queue (Delayed, Waiting, or exact Job ID) so it disappears from Bull Dashboard
     try {
       const { emailQueue, getDeterministicJobId } = await import('../queues/emailQueue.js');
+      
+      // 1. Remove by exact bullJobId / deterministic ID
       const targetBullId = emailJob.bullJobId || getDeterministicJobId(id);
       const bullJob = await emailQueue.getJob(targetBullId);
       if (bullJob) {
         await bullJob.remove();
+        console.log(`[Queue Cancel] Removed exact BullMQ job: ${targetBullId}`);
+      }
+
+      // 2. Also scan and purge any rescheduled/delayed jobs in BullMQ
+      const delayedJobs = await emailQueue.getDelayed();
+      for (const dj of delayedJobs) {
+        if (dj.data?.emailJobId === id || (dj.id && dj.id.includes(id))) {
+          await dj.remove();
+          console.log(`[Queue Cancel] Removed delayed BullMQ job: ${dj.id}`);
+        }
+      }
+
+      // 3. Also scan and purge any waiting jobs
+      const waitingJobs = await emailQueue.getWaiting();
+      for (const wj of waitingJobs) {
+        if (wj.data?.emailJobId === id || (wj.id && wj.id.includes(id))) {
+          await wj.remove();
+          console.log(`[Queue Cancel] Removed waiting BullMQ job: ${wj.id}`);
+        }
       }
     } catch (queueErr: any) {
       console.warn('[Queue Remove Warning]', queueErr.message);
